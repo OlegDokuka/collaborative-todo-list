@@ -17,7 +17,7 @@ import org.springframework.messaging.rsocket.RSocketStrategies
 )
 class KotlinxSerializationStrategyConfiguration {
     @Bean
-    @Order(0)
+    @Order(-1)
     fun kotlinxSerializationRSocketStrategyCustomizer(): RSocketStrategiesCustomizer {
         return RSocketStrategiesCustomizer { strategy: RSocketStrategies.Builder ->
             strategy.decoder(KotlinSerializationJsonDecoder())
