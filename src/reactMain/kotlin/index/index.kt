@@ -1,65 +1,29 @@
 package index
 
-import app.*
-import io.ktor.client.*
-import io.ktor.client.features.websocket.*
-import io.rsocket.kotlin.core.RSocketConnector
-import io.rsocket.kotlin.core.WellKnownMimeType
-import io.rsocket.kotlin.metadata.buildCompositeMetadata
-import io.rsocket.kotlin.payload.PayloadMimeType
-import io.rsocket.kotlin.payload.buildPayload
-import io.rsocket.kotlin.payload.data
-import io.rsocket.kotlin.transport.ktor.client.RSocketSupport
-import io.rsocket.kotlin.transport.ktor.client.rSocket
-import kotlinext.js.*
+import api.RSocketClient
+import app.AppOptions
+import app.app
+import com.example.demo.service.TodoService
+import kotlinext.js.require
+import kotlinext.js.requireAll
+import kotlinx.browser.document
+import kotlinx.browser.window
 import org.w3c.dom.events.EventListener
-import react.dom.*
-import kotlinx.browser.*
-import react.redux.provider
-import reducers.State
-import reducers.combinedReducers
-import redux.*
+import react.dom.render
+import repository.LocalStorageTodoRepository
+import kotlin.collections.set
 
-//@JsModule("redux-thunk.default")
-//@JsNonModule
-//external val thunk: Middleware<State, RAction, WrapperAction, RAction, dynamic>
-
-//val store: Store<State, RAction, dynamic> = createStore<State, RAction, dynamic>(
-//    combinedReducers(),
-//    State(),
-//    compose(
-//        applyMiddleware(thunk, ),
-//        rEnhancer(),
-//        js("if(window.__REDUX_DEVTOOLS_EXTENSION__ )window.__REDUX_DEVTOOLS_EXTENSION__ ();else(function(f){return f;});")
-//    )
-//)
 
 suspend fun main(args: Array<String>) {
-    val client: HttpClient = HttpClient {
-        install(WebSockets)
-        install(RSocketSupport) {
-            connector = RSocketConnector {
-                connectionConfig {
-                    payloadMimeType = PayloadMimeType(data = WellKnownMimeType.ApplicationJson, metadata = WellKnownMimeType.MessageRSocketCompositeMetadata)
-                }
-            }
-        }
-    }
-    val rSocket = client.rSocket(port = 8080, path = "/rsocket")
-
-
-    requireAll(require.context("", true, js("/\\.css$/")))
-    requireAll(require.context("../../../node_modules/todomvc-app-css", true, js("/\\.css$/")))
-    requireAll(require.context("../../../node_modules/todomvc-common", true, js("/\\.css$/")))
-    requireAll(require.context("../../../node_modules/todomvc-common", true, js("/\\.js$/")))
-
+    initStyles()
     AppOptions.language = "en_US"
+
+    val client = RSocketClient.create()
+    val service = TodoService(LocalStorageTodoRepository())
 
     fun render(route: String = "list", parameters: Map<String, String>) {
         render(document.getElementById("root")) {
-//            provider(store) {
-                app(route, rSocket)
-//            }
+            app(route, client, service)
         }
     }
 
@@ -96,4 +60,11 @@ suspend fun main(args: Array<String>) {
 
     renderByUrl()
 
+}
+
+fun initStyles() {
+    requireAll(require.context("", true, js("/\\.css$/")))
+    requireAll(require.context("../../../node_modules/todomvc-app-css", true, js("/\\.css$/")))
+    requireAll(require.context("../../../node_modules/todomvc-common", true, js("/\\.css$/")))
+    requireAll(require.context("../../../node_modules/todomvc-common", true, js("/\\.js$/")))
 }

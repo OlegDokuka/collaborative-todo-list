@@ -7,8 +7,17 @@ import kotlinx.serialization.Serializable
 data class Todo (
     val id: String = uuid4().toString(),
     val title: String,
-    var completed: Boolean = false
+    var completed: Boolean = false,
+    var removed: Boolean = false
 )
+
+@Serializable
+enum class EventType {
+    ADD, UPDATE, UPSERT, REMOVE
+}
+
+@Serializable
+data class TodoEvent(val type: EventType, val todo: Todo)
 
 enum class TodoFilter {
     ANY, COMPLETED, PENDING;

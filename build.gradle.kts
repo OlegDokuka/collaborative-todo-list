@@ -1,5 +1,4 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
     kotlin("multiplatform") version "1.4.32"
@@ -43,7 +42,6 @@ kotlin {
         tasks.withType<Test> {
             useJUnitPlatform()
         }
-//        withJava()
     }
     js("react", IR) {
         binaries.executable()
@@ -79,12 +77,7 @@ kotlin {
 
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react:17.0.2-pre.212-kotlin-1.5.10")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:17.0.2-pre.212-kotlin-1.5.10")
-                implementation("org.jetbrains.kotlin-wrappers:kotlin-react-redux:7.2.3-pre.212-kotlin-1.5.10")
-                implementation("org.jetbrains.kotlin-wrappers:kotlin-redux:4.0.5-pre.212-kotlin-1.5.10")
 
-                implementation(npm("crypto-browserify", "3.12.0"))
-                implementation(npm("redux", "4.1.0"))
-                implementation(npm("redux-thunk", "2.3.0"))
                 implementation(npm("todomvc-app-css", "2.0.0"))
                 implementation(npm("todomvc-common", "1.0.0"))
             }
@@ -94,30 +87,9 @@ kotlin {
             dependencies {
 
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.1")
-                implementation("org.springframework.boot:spring-boot-starter-rsocket") {
-                    exclude(group = "com.fasterxml.jackson.core")
-                    exclude(group = "com.fasterxml.jackson.datatype")
-                    exclude(group = "com.fasterxml.jackson.dataformat")
-                    exclude(group = "com.fasterxml.jackson.module")
-                }
-                implementation("org.springframework.boot:spring-boot-starter-webflux") {
-                    exclude(group = "com.fasterxml.jackson.core")
-                    exclude(group = "com.fasterxml.jackson.datatype")
-                    exclude(group = "com.fasterxml.jackson.dataformat")
-                    exclude(group = "com.fasterxml.jackson.module")
-//                    <groupId></groupId>
-//                    <artifactId>jackson-core</artifactId>
-//                    </exclusion>
-//                    <exclusion>
-//                    <groupId>com.fasterxml.jackson.core</groupId>
-//                    <artifactId>jackson-databind</artifactId>
-//                    </exclusion>
-//                    <exclusion>
-//                    <groupId>com.fasterxml.jackson.core</groupId>
-//                    <artifactId>jackson-annotations</artifactId>
-//                    </exclusion>
-                }
-//                implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+                implementation("org.springframework.boot:spring-boot-starter-rsocket")
+                implementation("org.springframework.boot:spring-boot-starter-webflux")
+
                 implementation("io.projectreactor.kotlin:reactor-kotlin-extensions")
                 implementation("org.jetbrains.kotlin:kotlin-reflect")
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -132,8 +104,6 @@ kotlin {
         }
     }
 }
-
-
 
 tasks.getByName<Copy>("springProcessResources") {
     dependsOn(tasks.getByName("reactBrowserDevelopmentWebpack"))

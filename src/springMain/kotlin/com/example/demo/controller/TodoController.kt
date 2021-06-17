@@ -2,11 +2,12 @@ package com.example.demo.controller
 
 import com.benasher44.uuid.Uuid
 import com.benasher44.uuid.uuid4
-import com.example.demo.model.AddTodo
-import com.example.demo.model.Operation
+import com.example.demo.model.EventType
 import com.example.demo.model.Todo
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.example.demo.model.TodoEvent
+import com.example.demo.service.TodoService
+import kotlinx.coroutines.flow.*
+import org.springframework.messaging.handler.annotation.DestinationVariable
 import org.springframework.messaging.handler.annotation.MessageMapping
 import org.springframework.messaging.handler.annotation.Payload
 import org.springframework.messaging.rsocket.RSocketRequester
@@ -17,10 +18,10 @@ import java.util.concurrent.ConcurrentMap
 
 
 @Controller
-class TodoController {
+class TodoController(val todoService: TodoService) {
 
     val clients: ConcurrentMap<Uuid, RSocketRequester> = ConcurrentHashMap()
-    val streams: ConcurrentMap<RSocketRequester, MutableSharedFlow<Todo>> = ConcurrentHashMap()
+    val streams: ConcurrentMap<RSocketRequester, MutableSharedFlow<TodoEvent>> = ConcurrentHashMap()
 
     @ConnectMapping("")
     fun handleCollaborator(rSocketRequester: RSocketRequester) {
@@ -39,13 +40,34 @@ class TodoController {
     }
 
     @MessageMapping("todos")
-    fun streamTodos(rSocketRequester: RSocketRequester): Flow<Operation> = streams[rSocketRequester]!!
+    fun streamTodos(rSocketRequester: RSocketRequester): Flow<TodoEvent> =
+        todoService.listTodos().asFlow()
+            .map { TodoEvent(EventType.UPSERT, it) }
+            .onCompletion { emitAll(streams[rSocketRequester]!!) }
 
-    @MessageMapping("todos.add")
-    suspend fun handleTodo(@Payload todo: Tod, rSocketRequester: RSocketRequester) {
+
+    @MessageMapping("todos.{action}")
+    suspend fun handleTodoAction(
+        @Payload todo: Todo,
+        @DestinationVariable("action") action: String,
+        rSocketRequester: RSocketRequester
+    ) {
         println("received message $todo")
         println(streams)
+
+        val evenType = when (action) {
+            "add" -> EventType.ADD
+            "update" -> EventType.UPDATE
+            "remove" -> EventType.REMOVE
+            "upsert" -> EventType.UPSERT
+            else -> throw Error("Unsupported action type $action")
+        }
+
+        val todoEvent = TodoEvent(evenType, todo)
+
+        todoService.handleEvent(todoEvent)
+
         streams.filter { it.key != rSocketRequester }
-            .forEach { it.value.emit(todo) }
+            .forEach { it.value.emit(todoEvent) }
     }
 }
