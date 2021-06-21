@@ -39,7 +39,14 @@ class App(props: AppProps) : RComponent<AppProps, AppState>(props) {
     override fun AppState.init(props: AppProps) {
         console.log("componentWillReceiveProps $props")
 
-        props.client.handleTodos(props.service::handleEvent)
+        props.client.handleTodos(::handleTodos)
+    }
+
+    private fun handleTodos(todoEvent: TodoEvent){
+        props.service.handleEvent(todoEvent)
+        setState {
+            todos = props.service.listTodos()
+        }
     }
 
     override fun componentWillMount() {
