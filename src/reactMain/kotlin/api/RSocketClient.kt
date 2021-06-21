@@ -47,9 +47,9 @@ class RSocketClient(val rsocket: RSocket) : Client {
             .launchIn(MainScope())
     }
 
-    override fun exchange(todo: List<Todo>) {
+    override fun exchange(todos: List<Todo>) {
         MainScope().launch {
-            todo.forEach {
+            todos.forEach { todo ->
                 rsocket
                     .fireAndForget(buildPayload {
                         data(Json.encodeToString(todo))
