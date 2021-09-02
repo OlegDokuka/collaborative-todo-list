@@ -36,7 +36,10 @@ kotlin {
         }
 
         val jvmMain by getting {
-            dependsOn(commonMain)
+            dependsOn(commonClientMain)
+            dependencies {
+                implementation("io.ktor:ktor-client-cio:1.6.3")
+            }
         }
 
         val jsMain by getting {
@@ -49,7 +52,6 @@ kotlin {
         val androidMain by getting {
             dependsOn(commonClientMain)
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.5.1")
                 implementation("io.ktor:ktor-client-android:1.6.3")
                 implementation("io.ktor:ktor-client-okhttp:1.6.3")
             }
